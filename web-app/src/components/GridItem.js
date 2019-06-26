@@ -14,6 +14,8 @@ import Slicer from './filters/Slicer';
 import ImageBox from './widgets/ImageBox';
 import Iframe from './widgets/Iframe';
 import TextBox from './widgets/TextBox';
+import InnerHtml from './widgets/InnerHtml';
+import DatePicker from './filters/DatePicker';
 
 class GridItem extends React.Component {
 
@@ -184,6 +186,14 @@ class GridItem extends React.Component {
     this.props.onComponentFilterInputChange(componentId, data);
   }
 
+  onDatePickerChange = (componentId, date) => { 
+    const epoch = Math.round((date).getTime() / 1000);
+    const data = {
+      value: epoch
+    };
+    this.props.onComponentFilterInputChange(componentId, data);
+  }
+
   renderComponentContent = () => {
     const onChartEvents = {
       'click': this.onChartClick,
@@ -199,7 +209,8 @@ class GridItem extends React.Component {
       data = {},
       checkBoxes,
       value,
-      title
+      title,
+      reportType
     } = this.props;
 
     const queryResultData = Util.jsonToArray(queryResult.data);
@@ -211,6 +222,8 @@ class GridItem extends React.Component {
     if (error) {
       return (<div>{error}</div>);
     }
+
+    const isReadOnly = reportType === Constants.CANNED;
     
     let componentItem = (<div></div>);
     if (type === Constants.CHART) {
@@ -245,18 +258,33 @@ class GridItem extends React.Component {
               id={id} 
               checkBoxes={checkBoxes} 
               onChange={this.onSlicerChange} 
+              readOnly={isReadOnly}
             />
           </div>
         );
       } else if (subType === Constants.SINGLE_VALUE) {
         componentItem = (
           <div className="grid-box-content-panel">
-            <input 
-              className="form-input"
-              type="text"  
-              value={value}
-              onChange={(event) => this.onSingleValueChange(id, event)}
-              className="filter-input" 
+            <div>
+              <input 
+                className="filter-input"
+                type="text"  
+                value={value}
+                onChange={(event) => this.onSingleValueChange(id, event)}
+                readOnly={isReadOnly}
+              />
+            </div>
+          </div>
+        );
+      } else if (subType === Constants.DATE_PICKER) {
+        const date = value ? new Date(parseInt(value, 10) * 1000) : new Date();
+        componentItem = (
+          <div className="grid-box-content-panel">
+            <DatePicker 
+              name={id}
+              value={date}
+              onChange={this.onDatePickerChange}
+              readOnly={isReadOnly}
             />
           </div>
         );
@@ -290,6 +318,16 @@ class GridItem extends React.Component {
             value={value}
           />
         );
+      } else if (subType === Constants.HTML) {
+        const { 
+          innerHtml
+        } = data;
+        componentItem = (
+          <InnerHtml 
+            html={innerHtml}
+          />
+        );
+        
       }
     }
     
@@ -304,7 +342,8 @@ class GridItem extends React.Component {
       style = {},
       drillThrough,
       queryResult = {},
-      type
+      type,
+      selectedComponentId
     } = this.props;
 
     const { 
@@ -318,7 +357,7 @@ class GridItem extends React.Component {
     } = style;
 
     let borderStyle;
-    if (isEditMode && (this.state.mode !== '' || this.props.selectedComponentId === id)) {
+    if (isEditMode && (this.state.mode !== '' || selectedComponentId === id)) {
       borderStyle = '2px dashed ' + Constants.COLOR_SLATE;
     } else {
       borderStyle = showBorder ? `2px solid ${borderColor}` : '2px solid transparent';
@@ -382,6 +421,7 @@ class GridItem extends React.Component {
             onMouseMove={this.onMouseMove}
             mode={this.state.mode}
             snapToGrid={this.props.snapToGrid} 
+            isSelected={selectedComponentId === id}
           />
         )}
 

@@ -67,3 +67,18 @@ There are four url search parameters in this example.
 * $showControl=true
 
   Optional. Whether to display the title bar with control panel.
+
+## Canned report
+
+Canned report captures a snapshot of the report, which perserves the current status of the filters and charts. 
+
+The main push to use canned report is that the data in the source database might keep changing or be purged at some point. Sometimes if we need to save a copy of the data before it goes away, that's when canned report comes into play.
+
+Save the report as canned report.
+
+![canned report](_images/screenshots/canned_report.jpg)
+
+Notes
+* Filters are not allowed to change values in canned report.
+* Users can only create/view/delete canned report created by themselves.
+

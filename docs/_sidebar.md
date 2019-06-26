@@ -1,6 +1,5 @@
 - Getting Started
 
-  - [Introduction](README.md)
   - [Installation](installation.md)
   - [Quick Start](quick-start.md)
   
@@ -14,3 +13,7 @@
 - Development
 
   - [Build](build.md)
+
+- Release
+
+  - [Change logs](change-logs.md)

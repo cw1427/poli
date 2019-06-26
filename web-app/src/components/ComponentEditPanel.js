@@ -3,6 +3,7 @@ import React from 'react';
 import axios from 'axios';
 import AceEditor from 'react-ace';
 import 'brace/mode/mysql';
+import 'brace/mode/html';
 import 'brace/theme/xcode';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -62,7 +63,7 @@ class ComponentEditPanel extends React.Component {
       titleFontColor: Constants.COLOR_SLATE,
       titleBackgroundColor: Constants.COLOR_WHITE,
       contentBackgroundColor: Constants.COLOR_WHITE,
-      zIndex: 50
+      zIndex: 1
     }
   }
 
@@ -159,6 +160,14 @@ class ComponentEditPanel extends React.Component {
   handleAceEditorChange = (newValue) => {
     this.setState({
       sqlQuery: newValue
+    });
+  }
+
+  handleInnerHtmlChange = (newValue) => {
+    const data = {...this.state.data};
+    data.innerHtml = newValue;
+    this.setState({
+      data: data
     });
   }
 
@@ -559,6 +568,29 @@ class ComponentEditPanel extends React.Component {
       const {
         innerHtml
       } = data;
+      staticConfigPanel = (
+        <div className="form-panel">
+          <label>Inner Html</label>
+          <AceEditor
+            value={innerHtml}
+            mode="html"
+            theme="xcode"
+            name="innerHtml"
+            onChange={this.handleInnerHtmlChange}
+            height={'300px'}
+            width={'100%'}
+            fontSize={15}
+            showPrintMargin={false}
+            showGutter={true}
+            highlightActiveLine={true}
+            setOptions={{
+              showLineNumbers: true,
+              tabSize: 2
+          }}/>
+      </div>
+      );
+      
+      
     } else if (subType === Constants.IFRAME) {
       const {
         title,
@@ -710,12 +742,12 @@ class ComponentEditPanel extends React.Component {
 
         <div className="row mt-10">
           <label className="float-left inline-text-label bold" style={{width: '100px'}}>Sub Type: </label>
-          <div className="float-left">
-            <SelectButtons
+          <div className="float-left" style={{width: '310px'}}>
+            <Select
               name={'subType'}
               value={subType}
+              options={subTypes}
               onChange={this.handleOptionChange}
-              selections={subTypes}
             />
           </div>
         </div>
@@ -729,7 +761,7 @@ class ComponentEditPanel extends React.Component {
 
             { showQueryTab && (
               <div title="Query">
-                <div className="form-panel">
+                <div className="form-panel" style={{paddingTop: '10px'}}>
                   <label>DataSource:</label>
                   <Select
                     name={'jdbcDataSourceId'}
@@ -777,7 +809,7 @@ class ComponentEditPanel extends React.Component {
                               value={this.state.sqlQuery}
                               mode="mysql"
                               theme="xcode"
-                              name="blah2"
+                              name="sqlQuery"
                               onChange={this.handleAceEditorChange}
                               height={'300px'}
                               width={'100%'}
@@ -817,7 +849,7 @@ class ComponentEditPanel extends React.Component {
             {/* ---------- Config Tab ---------- */}
 
             <div title="Config">
-              <div className="form-panel">
+              <div className="form-panel" style={{paddingTop: '10px'}}>
                 { type === Constants.STATIC && (
                   <div>
                     {this.renderStaticConfigPanel()} 
@@ -858,7 +890,7 @@ class ComponentEditPanel extends React.Component {
             
             { type === Constants.CHART && (
               <div title="Drill Through">
-                <div className="form-panel">
+                <div className="form-panel" style={{paddingTop: '10px'}}>
                   <div>
                     <label>Column</label>
                     <Select
