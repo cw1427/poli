@@ -75,6 +75,13 @@ body,
   margin-left: -250px;
 }
 
+.large-modal-panel {
+  left: 50%;
+  width: 800px;
+  top: 20px;
+  margin-left: -400px;
+}
+
 .full-screen-view {
   background-color: #F4F5F7;
   position: fixed;
@@ -133,6 +140,7 @@ body,
 
 .form-input,
 .table-row {
+  -webkit-appearance: none;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;    
   box-sizing: border-box;

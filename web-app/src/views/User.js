@@ -2,6 +2,7 @@
 import React from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { withTranslation } from 'react-i18next';
 
 import * as Constants from '../api/Constants';
 
@@ -28,7 +29,10 @@ class User extends React.Component {
       tempPassword: '',
       sysRole: Constants.SYS_ROLE_VIEWER,
       userGroupId: '',
-      userGroups: []
+      userGroups: [],
+      userAttributes: [],
+      attrKey: '',
+      attrValue: ''
     };
   }
 
@@ -59,7 +63,10 @@ class User extends React.Component {
       tempPassword: '',
       sysRole: '',
       userGroupId: '',
-      userGroups: []
+      userGroups: [],
+      userAttributes: [],
+      attrKey: '',
+      attrValue: ''
     };
   }
 
@@ -89,6 +96,7 @@ class User extends React.Component {
   }
 
   openEditPanel = (user) => {
+    this.clearEditPanel();
     if (user !== null) {
       axios.get('/ws/user/' + user.id)
         .then(res => {
@@ -99,11 +107,10 @@ class User extends React.Component {
             name: result.name,
             tempPassword: '',
             sysRole: result.sysRole,
-            userGroups: result.userGroups
+            userGroups: result.userGroups,
+            userAttributes: result.userAttributes
           });
         });
-    } else {
-      this.clearEditPanel();
     }
 
     this.setState({
@@ -136,7 +143,8 @@ class User extends React.Component {
       name,
       tempPassword,
       sysRole,
-      userGroups
+      userGroups,
+      userAttributes
     } = this.state;
 
     if (!username) {
@@ -154,12 +162,12 @@ class User extends React.Component {
       }
     }
 
-
-    let user = {
+    const user = {
       username: username,
       name: name,
       sysRole: selectedSysRole,
-      userGroups: userGroups
+      userGroups: userGroups,
+      userAttributes: userAttributes
     };
 
     if (id !== null) {
@@ -230,6 +238,44 @@ class User extends React.Component {
     } 
   }
 
+  addUserAttribute = () => {
+    const { 
+      attrKey,
+      attrValue,
+      userAttributes = []
+    } = this.state;
+    if (!attrKey) {
+      return;
+    }
+    const index = userAttributes.findIndex(attr => attr.attrKey === attrKey);
+    if (index === -1) {
+      const newUserAttributes = [...userAttributes];
+      newUserAttributes.push({
+        attrKey: attrKey,
+        attrValue: attrValue
+      });
+      this.setState({
+        userAttributes: newUserAttributes,
+        attrKey: '',
+        attrValue: ''
+      });
+    }
+  }
+
+  removeUserAttribute = (attrKey) => {
+    const { 
+      userAttributes = [] 
+    } = this.state;
+    const index = userAttributes.findIndex(attr => attr.attrKey === attrKey);
+    if (index !== -1) {
+      const newUserAttributes = [...userAttributes];
+      newUserAttributes.splice(index, 1);
+      this.setState({
+        userAttributes: newUserAttributes
+      });
+    } 
+  }
+
   confirmDelete = () => {
     const { 
       objectToDelete = {} 
@@ -256,12 +302,15 @@ class User extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
+    
     const { 
       id,
       showUpdatePassword,
       users = [],
       groups = [],
       userGroups = [],
+      userAttributes = [],
       searchValue,
       showConfirmDeletionPanel,
       objectToDelete = {}
@@ -326,6 +375,15 @@ class User extends React.Component {
       }
     }
 
+    const userAttributeItems = userAttributes.map(attr =>
+      <div key={attr.attrKey} className="row table-row">
+        <div className="float-left ellipsis" style={{width: '180px'}}>{attr.attrKey}: {attr.attrValue}</div>
+        <button className="button table-row-button float-right button-red" onClick={() => this.removeUserAttribute(attr.attrKey)}>
+          <FontAwesomeIcon icon="trash-alt" />
+        </button>
+      </div>
+    );
+
     return (
       <div>
         <div class="row">
@@ -338,7 +396,7 @@ class User extends React.Component {
             />
           </div>
           <button className="button float-left" onClick={() => this.openEditPanel(null)}>
-            <FontAwesomeIcon icon="plus" /> New
+            <FontAwesomeIcon icon="plus" /> {t('New')}
           </button>
         </div>
         <div className="row mt-10">
@@ -348,12 +406,12 @@ class User extends React.Component {
         <Modal 
           show={this.state.showEditPanel}
           onClose={this.closeEditPanel}
-          modalClass={'mid-modal-panel'} 
-          title={mode} >
+          modalClass={'large-modal-panel'} 
+          title={t(mode)} >
 
           <div className="row">
             <div className="form-panel float-left" style={{width: '240px'}}>
-              <label>Username <span className="required">*</span></label>
+              <label>{t('Username')} <span className="required">*</span></label>
               <input 
                 className="form-input"
                 type="text" 
@@ -362,7 +420,7 @@ class User extends React.Component {
                 onChange={this.handleInputChange} 
               />
 
-              <label>Name</label>
+              <label>{t('Name')}</label>
               <input 
                 className="form-input"
                 type="text" 
@@ -373,12 +431,12 @@ class User extends React.Component {
 
               { mode === 'Edit' && (
                   <div style={{margin: '3px 0px 8px 0px'}}>
-                    <button className="button" onClick={this.toggleUpdatePassword}>Change password</button>
+                    <button className="button" onClick={this.toggleUpdatePassword}>{t('Change Password')}</button>
                   </div>
               )}
               { (mode === 'New' || showUpdatePassword) && ( 
                 <div>
-                  <label>New Password</label>
+                  <label>{t('New Password')} <span className="required">*</span></label>
                   <input 
                     className="form-input"
                     type="password" 
@@ -388,7 +446,7 @@ class User extends React.Component {
                 </div>
               )}
               
-              <label>System Role</label>
+              <label>{t('System Role')}</label>
               { Constants.SYS_ROLE_ADMIN === currentUserSysRole && (
                 <Select
                   name={'sysRole'}
@@ -404,27 +462,55 @@ class User extends React.Component {
               
             </div>
 
-            { Constants.SYS_ROLE_VIEWER === this.state.sysRole && (
-              <div className="form-panel float-right" style={{width: '240px'}}>
-            
-                <label>Groups</label>
-                <Select
-                  name={'userGroupId'}
-                  value={this.state.userGroupId}
-                  onChange={this.handleIntegerOptionChange}
-                  options={groups}
-                  optionDisplay={'name'}
-                  optionValue={'id'}
-                />
-                <button className="button" onClick={this.addUserGroup}>Add</button>
-                <div style={{marginTop: '8px'}}>
-                  {userGroupItems}
-                </div>
+            <div className="form-panel float-left" style={{width: '240px', marginLeft: '20px'}}>
+              <label>{t('Attributes')}</label>
+              <label>{t('Key')} <span className="required">*</span></label>
+              <input 
+                className="form-input"
+                type="text" 
+                name="attrKey" 
+                value={this.state.attrKey}
+                onChange={this.handleInputChange} 
+              />
+                
+              <label>{t('Value')}</label>
+              <input 
+                className="form-input"
+                type="text" 
+                name="attrValue" 
+                value={this.state.attrValue}
+                onChange={this.handleInputChange} 
+              />
+
+              <button className="button" onClick={this.addUserAttribute}>{t('Add')}</button>
+              <div style={{marginTop: '8px'}}>
+                {userAttributeItems}
               </div>
-            )}
+            </div>
+
+            <div className="form-panel float-left" style={{width: '240px', marginLeft: '20px'}}>
+              { Constants.SYS_ROLE_VIEWER === this.state.sysRole && (
+                <div>
+                  <label>{t('Groups')}</label>
+                  <Select
+                    name={'userGroupId'}
+                    value={this.state.userGroupId}
+                    onChange={this.handleIntegerOptionChange}
+                    options={groups}
+                    optionDisplay={'name'}
+                    optionValue={'id'}
+                  />
+                  <button className="button" onClick={this.addUserGroup}>{t('Add')}</button>
+                  <div style={{marginTop: '8px'}}>
+                    {userGroupItems}
+                  </div>
+                </div>  
+              )}      
+            </div>
+
           </div>
           <button className="button mt-3 button-green" onClick={this.save}>
-            <FontAwesomeIcon icon="save" size="lg" fixedWidth /> Save
+            <FontAwesomeIcon icon="save" size="lg" fixedWidth /> {t('Save')}
           </button>
         </Modal>
 
@@ -432,11 +518,11 @@ class User extends React.Component {
           show={showConfirmDeletionPanel}
           onClose={this.closeConfirmDeletionPanel}
           modalClass={'small-modal-panel'}
-          title={'Confirm Deletion'} >
+          title={t('Confirm Deletion')} >
           <div className="confirm-deletion-panel">
-            Are you sure you want to delete {objectToDelete.name}?
+            {t('Are you sure you want to delete')} {objectToDelete.name}?
           </div>
-          <button className="button button-red full-width" onClick={this.confirmDelete}>Delete</button>
+          <button className="button button-red full-width" onClick={this.confirmDelete}>{t('Delete')}</button>
         </Modal>
         
       </div>
@@ -444,4 +530,4 @@ class User extends React.Component {
   }
 }
 
-export default User;
+export default (withTranslation()(User));

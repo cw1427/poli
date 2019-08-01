@@ -4,6 +4,10 @@
   clear: both;
 }
 
+.calendar-container {
+  padding-top: 5px;
+}
+
 .calendar-dialog {
   width: 189px;
   border: 1px solid #000000;
@@ -74,4 +78,12 @@
 .calendar-container .select-year {
   height: 20px;
   margin-top: 3px;
+}
+
+.calendar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }

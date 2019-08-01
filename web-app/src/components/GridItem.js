@@ -13,9 +13,9 @@ import Table from './Table';
 import Slicer from './filters/Slicer';
 import ImageBox from './widgets/ImageBox';
 import Iframe from './widgets/Iframe';
-import TextBox from './widgets/TextBox';
 import InnerHtml from './widgets/InnerHtml';
 import DatePicker from './filters/DatePicker';
+import Card from './widgets/Card';
 
 class GridItem extends React.Component {
 
@@ -83,37 +83,7 @@ class GridItem extends React.Component {
       return;
     }
 
-    this.convertCsv(title, columns, queryResultData);
-  }
-
-  convertCsv = (title = 'poli', columns = [], data = []) => {
-    let csvHeader = '';
-    for (let i = 0; i < columns.length; i++) {
-      if (i !== 0) {
-          csvHeader += ',';
-      }
-      csvHeader += columns[i].name;
-    }
-
-    let csvBody = '';
-    for (let i = 0; i < data.length; i++) {
-        const row = Object.values(data[i]);
-        csvBody += row.join(',') + '\r\n';
-    } 
-
-    const csvData = csvHeader + '\r\n' + csvBody;
-    const filename = title + '.csv';
-    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    if (link.download !== undefined) { 
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-      link.setAttribute("download", filename);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    this.props.onComponentCsvExport(title, columns, queryResultData);
   }
 
   removeComponent = (componentId) => {
@@ -228,14 +198,32 @@ class GridItem extends React.Component {
     let componentItem = (<div></div>);
     if (type === Constants.CHART) {
       if (subType === Constants.TABLE) {
-        const { defaultPageSize } = data;
+        const { 
+          defaultPageSize = 10,
+          showPagination = true
+        } = data;
         componentItem = (
           <Table
             data={queryResultData}
             columns={columns}
             defaultPageSize={defaultPageSize}
             drillThrough={drillThrough}
+            showPagination={showPagination}
             onTableTdClick={this.onTableTdClick}
+          />
+        );
+      } else if (subType === Constants.CARD) {
+        const { 
+          fontSize = 16,
+          fontColor = '#000000',
+        } = data;
+        const obj = Util.isArrayEmpty(queryResultData) ? '' : queryResultData[0];
+        const value = Object.values(obj)[0];
+        componentItem = (
+          <Card 
+            fontSize={fontSize} 
+            fontColor={fontColor}
+            value={value}
           />
         );
       } else {
@@ -265,7 +253,7 @@ class GridItem extends React.Component {
       } else if (subType === Constants.SINGLE_VALUE) {
         componentItem = (
           <div className="grid-box-content-panel">
-            <div>
+            <div style={{paddingTop: '5px'}}>
               <input 
                 className="filter-input"
                 type="text"  
@@ -292,10 +280,14 @@ class GridItem extends React.Component {
     } else if (type === Constants.STATIC) {
       if (subType === Constants.IMAGE) {
         const { 
-          src = '' 
+          src = '',
+          isFull = false,
         } = data;
         componentItem = (
-          <ImageBox src={src} />
+          <ImageBox 
+            src={src}
+            isFull={isFull} 
+          />
         );
       } else if (subType === Constants.IFRAME) {
         const {
@@ -312,7 +304,7 @@ class GridItem extends React.Component {
           value = ''
         } = data;
         componentItem = (
-          <TextBox 
+          <Card 
             fontSize={fontSize} 
             fontColor={fontColor}
             value={value}
@@ -442,11 +434,11 @@ class GridItem extends React.Component {
           </div>
         )}
 
-        {readModeButtonGroup}
-        
         <div className="grid-box-content" style={contentStyle}>
           {this.renderComponentContent()}
         </div>
+
+        {readModeButtonGroup}
 
         { isEditMode && (
           <GridResizable 

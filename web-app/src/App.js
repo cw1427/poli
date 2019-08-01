@@ -8,13 +8,13 @@ import {
   faTv, faPlug, faUser, faSignOutAlt, faCompress, faExpandArrowsAlt,
   faFileExport, faFileCsv, faCircleNotch, faSearch, faSave, 
   faCalendarPlus, faFilter, faExternalLinkAlt, faCheckSquare, 
-  faLongArrowAltRight, faWrench, faArchive
+  faLongArrowAltRight, faWrench, faArchive, faFileDownload
 } from '@fortawesome/free-solid-svg-icons';
 import {
   faSquare as farSquare
 } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
+import { withTranslation } from 'react-i18next';
 
 import './App.css';
 
@@ -30,7 +30,7 @@ library.add(faChalkboard, faDatabase, faUsersCog, faPlus, faTimes,
   faTv, faPlug, faUser, faSignOutAlt, faCompress, faExpandArrowsAlt,
   faFileExport, faFileCsv, faCircleNotch, faSearch, faSave, 
   faCalendarPlus, faFilter, faExternalLinkAlt, faCheckSquare,
-  faLongArrowAltRight, faWrench, farSquare, faArchive
+  faLongArrowAltRight, faWrench, farSquare, faArchive, faFileDownload
 );
 
 class App extends React.Component {
@@ -39,7 +39,8 @@ class App extends React.Component {
     this.state = {
       username: '',
       sysRole: '',
-      isAuthorizing: false
+      isAuthorizing: false,
+      localeLanguage: ''
     }
   }
 
@@ -71,16 +72,33 @@ class App extends React.Component {
       return;
     }
 
+    const isFullScreenView = pathname.indexOf('/workspace/report/fullscreen') !== -1;
     const rememberMeConfig = localStorage.getItem(Constants.REMEMBERME);
-    const rememberMe = rememberMeConfig && rememberMeConfig === Constants.YES;
+    const rememberMe = (rememberMeConfig && rememberMeConfig === Constants.YES) || isFullScreenView;
 
     const {
-      sysRole
+      sysRole,
+      localeLanguage
     } = this.state;
 
     let isAuthenticated = false;
     if (sysRole) {
       isAuthenticated = true;
+    }
+
+    if (!localeLanguage) {
+      axios.get('/info/general')
+        .then(res => {
+          const info = res.data;
+          const {
+            localeLanguage
+          } = info;
+          const { i18n } = this.props;
+          i18n.changeLanguage(String(localeLanguage));
+          this.setState({
+            localeLanguage: localeLanguage
+          });
+        });
     }
 
     if (!isAuthenticated && rememberMe) {
@@ -155,6 +173,8 @@ class App extends React.Component {
       isAuthorizing
     } = this.state;
 
+    const { t } = this.props;
+
     let isAuthenticated = false;
     if (sysRole) {
       isAuthenticated = true;
@@ -163,7 +183,7 @@ class App extends React.Component {
     if (isAuthorizing) {
       return (
         <div className="authenticating-panel">
-          <div className="authenticating-panel-title">Poli</div>
+          <div className="authenticating-panel-title">{t('Poli')}</div>
           <FontAwesomeIcon icon="circle-notch" spin={true} size="2x" />
         </div>
       )
@@ -203,4 +223,4 @@ function PrivateRoute({component: Component, authenticated, ...rest}) {
   )
 }
 
-export default withRouter(App);
+export default (withTranslation()(withRouter(App)));
