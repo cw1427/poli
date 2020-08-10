@@ -2,8 +2,8 @@ package com.shzlw.poli.dao;
 
 import com.shzlw.poli.model.User;
 import com.shzlw.poli.model.UserAttribute;
-import com.shzlw.poli.util.CommonUtil;
-import com.shzlw.poli.util.PasswordUtil;
+import com.shzlw.poli.util.CommonUtils;
+import com.shzlw.poli.util.PasswordUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -32,7 +32,7 @@ public class UserDao {
     NamedParameterJdbcTemplate npjt;
 
     public User findByUsernameAndPassword(String username, String rawPassword) {
-        String encryptedPassword = PasswordUtil.getMd5Hash(rawPassword);
+        String encryptedPassword = PasswordUtils.getMd5Hash(rawPassword);
         String sql = "SELECT id, username, name, sys_role "
                     + "FROM p_user "
                     + "WHERE username=? AND password=?";
@@ -45,7 +45,7 @@ public class UserDao {
     }
 
     public User findByUsernameAndTempPassword(String username, String rawTempPassword) {
-        String encryptedPassword = PasswordUtil.getMd5Hash(rawTempPassword);
+        String encryptedPassword = PasswordUtils.getMd5Hash(rawTempPassword);
         String sql = "SELECT id, username, name, sys_role "
                     + "FROM p_user "
                     + "WHERE username=? AND temp_password=?";
@@ -72,15 +72,20 @@ public class UserDao {
         String sql = "SELECT id, username, name, sys_role, session_key "
                     + "FROM p_user WHERE api_key=?";
         try {
-            User user = (User) jt.queryForObject(sql, new Object[]{ apiKey }, (rs, i) -> {
-                User r = new User();
-                r.setId(rs.getLong(User.ID));
-                r.setUsername(rs.getString(User.USERNAME));
-                r.setName(rs.getString(User.NAME));
-                r.setSysRole(rs.getString(User.SYS_ROLE));
-                r.setSessionKey(rs.getString(User.SESSION_KEY));
-                return r;
-            });
+            User user = (User) jt.queryForObject(sql, new Object[]{ apiKey }, new UserSesssionKeyMapper());
+            return user;
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    public User findByShareKey(String shareKey) {
+        String sql = "SELECT u.id, u.username, u.name, u.sys_role, u.session_key "
+                    + "FROM p_user u, p_shared_report sr "
+                    + "WHERE u.id = sr.user_id "
+                    + "AND sr.share_key=?";
+        try {
+            User user = (User) jt.queryForObject(sql, new Object[]{ shareKey }, new UserSesssionKeyMapper());
             return user;
         } catch (EmptyResultDataAccessException e) {
             return null;
@@ -121,7 +126,7 @@ public class UserDao {
     }
 
     public int updateSessionKey(long userId, String sessionKey) {
-        long sessionTimeout = CommonUtil.toEpoch(LocalDateTime.now());
+        long sessionTimeout = CommonUtils.toEpoch(LocalDateTime.now());
         String sql = "UPDATE p_user SET session_key=?, session_timeout=? WHERE id=?";
         return jt.update(sql, new Object[] { sessionKey, sessionTimeout, userId});
     }
@@ -132,7 +137,7 @@ public class UserDao {
     }
 
     public int updateTempPassword(long userId, String rawNewPassword) {
-        String encryptedPassword = PasswordUtil.getMd5Hash(rawNewPassword);
+        String encryptedPassword = PasswordUtils.getMd5Hash(rawNewPassword);
         String sql = "UPDATE p_user SET temp_password=NULL, password=? WHERE id=?";
         return jt.update(sql, new Object[] { encryptedPassword, userId });
     }
@@ -170,7 +175,7 @@ public class UserDao {
     }
 
     public long insertUser(String username, String name, String rawTempPassword, String sysRole) {
-        String encryptedPassword = PasswordUtil.getMd5Hash(rawTempPassword);
+        String encryptedPassword = PasswordUtils.getMd5Hash(rawTempPassword);
         String sql = "INSERT INTO p_user(username, name, temp_password, sys_role) "
                     + "VALUES(:username, :name, :temp_password, :sys_role)";
         MapSqlParameterSource params = new MapSqlParameterSource();
@@ -228,7 +233,7 @@ public class UserDao {
                     user.getId()
             });
         } else {
-            String encryptedPassword = PasswordUtil.getMd5Hash(rawTempPassword);
+            String encryptedPassword = PasswordUtils.getMd5Hash(rawTempPassword);
             String sql = "UPDATE p_user SET username=?, name=?, sys_role=?, password=NULL, temp_password=? "
                         + "WHERE id=?";
             return jt.update(sql, new Object[]{
@@ -245,7 +250,7 @@ public class UserDao {
             String sql = "UPDATE p_user SET name=? WHERE id=?";
             return jt.update(sql, new Object[]{ name, userId });
         } else {
-            String encryptedPassword = PasswordUtil.getMd5Hash(rawPassword);
+            String encryptedPassword = PasswordUtils.getMd5Hash(rawPassword);
             String sql = "UPDATE p_user SET name=?, password=? WHERE id=?";
             return jt.update(sql, new Object[]{ name, encryptedPassword, userId });
         }
@@ -289,6 +294,19 @@ public class UserDao {
             r.setName(rs.getString(User.NAME));
             r.setSysRole(rs.getString(User.SYS_ROLE));
             r.setApiKey(rs.getString(User.API_KEY));
+            return r;
+        }
+    }
+
+    private static class UserSesssionKeyMapper implements RowMapper<User> {
+        @Override
+        public User mapRow(ResultSet rs, int i) throws SQLException {
+            User r = new User();
+            r.setId(rs.getLong(User.ID));
+            r.setUsername(rs.getString(User.USERNAME));
+            r.setName(rs.getString(User.NAME));
+            r.setSysRole(rs.getString(User.SYS_ROLE));
+            r.setSessionKey(rs.getString(User.SESSION_KEY));
             return r;
         }
     }

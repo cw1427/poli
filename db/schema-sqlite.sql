@@ -1,8 +1,12 @@
--- v0.9.1 for SQLite
+-- For SQLite
+DROP TABLE IF EXISTS p_audit_log;
+DROP TABLE IF EXISTS p_saved_query;
+DROP TABLE IF EXISTS p_shared_report;
+DROP TABLE IF EXISTS p_user_favourite;
 DROP TABLE IF EXISTS p_group_report;
 DROP TABLE IF EXISTS p_component;
 DROP TABLE IF EXISTS p_report;
-DROP TABLE IF EXISTS p_datasource;
+DROP TABLE IF EXISTS p_datasource; 
 DROP TABLE IF EXISTS p_user_attribute;
 DROP TABLE IF EXISTS p_canned_report;
 DROP TABLE IF EXISTS p_group_user;
@@ -23,8 +27,9 @@ IF NOT EXISTS p_datasource (
 CREATE TABLE
 IF NOT EXISTS p_report (
     id INTEGER NOT NULL PRIMARY KEY,
-    name TEXT NOT NULL,
-    style TEXT
+    name TEXT NOT NULL UNIQUE,
+    style TEXT,
+    project TEXT
 );
 
 CREATE TABLE
@@ -83,7 +88,6 @@ IF NOT EXISTS p_group_report (
     FOREIGN KEY (group_id) REFERENCES p_group(id)
 );
 
--- table added in v0.7.0
 CREATE TABLE
 IF NOT EXISTS p_canned_report (
     id INTEGER NOT NULL PRIMARY KEY,
@@ -94,7 +98,6 @@ IF NOT EXISTS p_canned_report (
     FOREIGN KEY (user_id) REFERENCES p_user(id)
 );
 
--- table added in v0.9.0
 CREATE TABLE
 IF NOT EXISTS p_user_attribute (
     user_id INTEGER NOT NULL,
@@ -103,7 +106,47 @@ IF NOT EXISTS p_user_attribute (
     FOREIGN KEY (user_id) REFERENCES p_user(id)
 );
 
-CREATE UNIQUE INDEX p_report_unique_name_index ON p_report(name);
+CREATE TABLE
+IF NOT EXISTS p_user_favourite (
+    user_id INTEGER NOT NULL,
+    report_id INTEGER NOT NULL,
+    PRIMARY KEY (user_id, report_id),
+    FOREIGN KEY (user_id) REFERENCES p_user(id),
+    FOREIGN KEY (report_id) REFERENCES p_report(id)
+);
+
+CREATE TABLE
+IF NOT EXISTS p_shared_report (
+    id INTEGER NOT NULL PRIMARY KEY,
+    share_key TEXT NOT NULL,
+    report_id INTEGER NOT NULL,
+    report_type TEXT NOT NULL,
+    user_id INTEGER NOT NULL,
+    created_at INTEGER NOT NULL,
+    expired_by INTEGER NOT NULL,
+    FOREIGN KEY (report_id) REFERENCES p_report(id),
+    FOREIGN KEY (user_id) REFERENCES p_user(id)
+);
+
+CREATE TABLE
+IF NOT EXISTS p_saved_query (
+    id INTEGER NOT NULL PRIMARY KEY,
+    datasource_id INTEGER,
+    name TEXT NOT NULL UNIQUE,
+    sql_query TEXT,
+    endpoint_name TEXT UNIQUE,
+    endpoint_accesscode TEXT
+);
+
+CREATE TABLE
+IF NOT EXISTS p_audit_log (
+    id INTEGER NOT NULL PRIMARY KEY,
+    created_at INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    data TEXT
+);
+
+CREATE INDEX idx_audit_log_created_at ON p_audit_log (created_at);
 
 INSERT INTO p_user(username, temp_password, sys_role)
 VALUES('admin', 'f6fdffe48c908deb0f4c3bd36c032e72', 'admin');

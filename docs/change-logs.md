@@ -1,5 +1,100 @@
 # Change Logs
 
+## v0.12.2
+
+### Bug Fixes
+- Add default value option for multi series charts (bar, line and area).
+- Fix the issue that table column is not sorted correctly if the data type is number.
+- Fix the query editor input lagging.
+
+## v0.12.1
+
+### Bug Fixes
+- Fix the issue that bar, line and area chart display wrong data when multi series option is checked in the chart option.
+
+## v0.12.0
+
+### Upgrade Steps
+- New databse tables need to be loaded in order to support saved query and audit log. 
+
+  ```sh
+  ./sqlite3 poli.db
+
+  -- File is located at upgrade/poli_upgrade_v0.12.0.sql
+  sqlite> .read poli_upgrade_v0.12.0.sql
+  ```
+
+### Improvements
+- Upgrade spring boot version and npm packages.
+- Add fixed header option for table component.
+- Update app style so new look & feel.
+- Update app icon.
+- Add french translation provided by @pasqal. Thanks! 
+- Update installation guide.
+- Add new kanban component.
+- Add new studio page to save used Query and turn SQL Query into a HTTP endpoint.
+- Add new audit log page.
+
+## v0.11.0
+
+### New Features
+- Support export report to PDF. 
+  ```sh
+  -- The export server is optional and placed under export-server folder. 
+  -- New configuration value needs to be specified in the poli.properties:
+  -- poli.export-server-url=http://127.0.0.1:6689/pdf
+  -- Start the export server.
+  node poli-export-server.js
+  ```
+- Add new Spanish translation #41.
+
+### Improvements
+- Improve the build scripts and Dockerfile.
+- Add "Run on Google Cloud" button.
+- Add a more options button to group buttons on report page.
+
+### Bug Fixes
+- Fix the issue that the query returns column name instead of column alias.
+
+## v0.10.1
+
+### Improvements
+- Set default JDBC fetch size to 100.
+
+### Bug Fixes
+- Fix multiple issues that affect shared report to work properly.
+
+## v0.10.0
+
+### Breaking Changes & Upgrade Steps
+  ```sh
+  -- Backup your database before you make changes to it
+  ./sqlite3 poli.db
+
+  -- File is located at upgrade/poli_upgrade_v0.10.0.sql
+  sqlite> .read poli_upgrade_v0.10.0.sql
+  ```
+
+  Check upgrade for more details.
+
+### New Features
+- A shared report URL can be generated with an expiration date defined through the share button. The shared report history can be viewed and managed under the event menu.
+- Reports can be grouped into projects which are collapsible on the side report menu.
+- Reports can be marked as farourite for quick access through the favourite button.
+- Allow to set default parameter value for filter component.
+- For Line/Bar/Area charts, the margin of the chart grid can be adjusted.
+
+### Improvements
+- Using $apiKey in the URL doesn't allow access to the report page but only the full screen page. The full screen report can still be embedded into another application and the report name and other parameters can be changed on the fly.
+- UI is refined to provide a cleaner user experience.
+- Add samples in docuemnt on how to setup data source for MySQL and SQL Server.
+- Add new upgrade steps for windows/linux.
+
+
+### Bug Fixes
+- Fix an issue that the full screen page doesn't display locale language.
+- Fix an issue that the search input on report page doesn't display correctly if the scroll bar shows.
+
 ## v0.9.1
 
 ### Improvements

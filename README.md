@@ -1,6 +1,6 @@
-# **Poli**
+# **Poli（魄力）**
 
-[![Version](https://img.shields.io/badge/Version-0.9.1-0065FF.svg)](#)
+[![Version](https://img.shields.io/badge/Version-0.12.2-0065FF.svg)](#)
 [![license: MIT](https://img.shields.io/badge/license-MIT-FF5630.svg)](https://opensource.org/licenses/MIT)
 [![Download](https://img.shields.io/github/downloads/shzlw/poli/total.svg?color=6554C0)](https://github.com/shzlw/poli/releases)
 [![Docker Pulls](https://img.shields.io/docker/pulls/zhonglu/poli.svg)](https://cloud.docker.com/u/zhonglu/repository/docker/zhonglu/poli)
@@ -56,13 +56,13 @@ Auto refresh, drill through, fullscreen, embeds, color themes + more features in
 Windows/Linux
 
 ```sh
-java -jar poli-0.9.1.jar
+java -jar poli-0.12.2.jar
 ```
 
 Docker
 
 ```sh
-docker run -d -p 6688:6688 --name poli zhonglu/poli:0.9.1
+docker run -d -p 6688:6688 --name poli zhonglu/poli:0.12.2
 ```
 
 Check [installation guide](https://shzlw.github.io/poli/#/installation) for more details.
@@ -75,8 +75,12 @@ Check [installation guide](https://shzlw.github.io/poli/#/installation) for more
 
 Poli's documentation and other information can be found at [here](https://shzlw.github.io/poli/).
 
+## Run on GCP
+
+[![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run)
+
 ## License
 
 MIT License
 
-Copyright (c) 2019 Zhonglu Wang
+Copyright (c) Zhonglu Wang

@@ -3,9 +3,9 @@ import React from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { withTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 
-import Toast from '../components/Toast';
-import Modal from '../components/Modal';
+import Modal from '../components/Modal/Modal';
 
 class Account extends React.Component {
 
@@ -35,7 +35,7 @@ class Account extends React.Component {
   }
 
   fetchUser = () => {
-    axios.get('/ws/user/account')
+    axios.get('/ws/users/account')
       .then(res => {
         const user = res.data;
         this.setState({
@@ -75,21 +75,21 @@ class Account extends React.Component {
 
     if (showUpdatePassword) {
       if (password !== confirmedPassword) {
-        Toast.showError(`Those passwords didn't match.`);
+        toast.error(`Those passwords didn't match.`);
         return;
       }  
 
       if (password.length < 8) {
-        Toast.showError(`Use 8 or more characters for password.`);
+        toast.error(`Use 8 or more characters for password.`);
         return;
       }
 
       user.password = password;
     }
 
-    axios.put('/ws/user/account', user)
+    axios.put('/ws/users/account', user)
       .then(res => {
-        Toast.showSuccess('Saved.');
+        toast.success('Saved.');
       });
   }
 
@@ -112,11 +112,10 @@ class Account extends React.Component {
     return (
       <div className="full-page-content">
         <div className="form-panel" style={{width: '400px'}}>   
-          <label className="bold">{t('Username')}</label>
-          <div className="info-value">{username}</div>
-          <br/>
+          <label>{t('Username')}</label>
+          <div className="form-input bg-grey">{username}</div>
 
-          <label className="bold">{t('Name')}</label>
+          <label>{t('Name')}</label>
           <input 
             className="form-input"
             type="text"   
@@ -125,12 +124,11 @@ class Account extends React.Component {
             onChange={this.handleInputChange} />
           <br/>
 
-          <label className="bold">{t('System Role')}</label>
-          <div className="info-value">{sysRole}</div>
-          <br/>
+          <label>{t('System Role')}</label>
+          <div className="form-input bg-grey">{sysRole}</div>
 
-          <label className="bold">{t('API Key')}</label>
-          <div className="info-value">{apiKey}</div>
+          <label>{t('API Key')}</label>
+          <div className="form-input bg-grey">{apiKey}</div>
           <button className="button mt-10 button-red" onClick={() => this.setState({ showGenerateApiKeyPanel: true })}>{t('Generate new API Key')}</button>
           
           <hr />
@@ -158,7 +156,7 @@ class Account extends React.Component {
 
           <hr />
           <button className="button mt-10 button-green" onClick={this.save}>
-            <FontAwesomeIcon icon="save" size="lg" fixedWidth /> {t('Save')}
+            <FontAwesomeIcon icon="save"  fixedWidth /> {t('Save')}
           </button>
         </div>
 

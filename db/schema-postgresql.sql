@@ -1,4 +1,8 @@
--- v0.9.1 for PostgreSQL
+-- For PostgreSQL
+DROP TABLE IF EXISTS p_audit_log;
+DROP TABLE IF EXISTS p_saved_query;
+DROP TABLE IF EXISTS p_shared_report;
+DROP TABLE IF EXISTS p_user_favourite;
 DROP TABLE IF EXISTS p_group_report;
 DROP TABLE IF EXISTS p_component;
 DROP TABLE IF EXISTS p_report;
@@ -23,8 +27,9 @@ IF NOT EXISTS p_datasource (
 CREATE TABLE
 IF NOT EXISTS p_report (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name VARCHAR NOT NULL,
-    style VARCHAR
+    name VARCHAR NOT NULL UNIQUE,
+    style VARCHAR,
+    project VARCHAR
 );
 
 CREATE TABLE
@@ -101,7 +106,49 @@ IF NOT EXISTS p_user_attribute (
     FOREIGN KEY (user_id) REFERENCES p_user(id)
 );
 
-CREATE UNIQUE INDEX p_report_unique_name_index ON p_report(name);
+-- v0.10.0 new tables
+CREATE TABLE
+IF NOT EXISTS p_user_favourite (
+    user_id INTEGER NOT NULL,
+    report_id INTEGER NOT NULL,
+    PRIMARY KEY (user_id, report_id),
+    FOREIGN KEY (user_id) REFERENCES p_user(id),
+    FOREIGN KEY (report_id) REFERENCES p_report(id)
+);
+
+CREATE TABLE
+IF NOT EXISTS p_shared_report (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    share_key VARCHAR NOT NULL,
+    report_id INTEGER NOT NULL,
+    report_type VARCHAR NOT NULL,
+    user_id INTEGER NOT NULL,
+    created_at BIGINT NOT NULL,
+    expired_by BIGINT NOT NULL,
+    FOREIGN KEY (report_id) REFERENCES p_report(id),
+    FOREIGN KEY (user_id) REFERENCES p_user(id)
+);
+
+CREATE TABLE
+IF NOT EXISTS p_saved_query (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    datasource_id INTEGER,
+    name VARCHAR NOT NULL UNIQUE,
+    sql_query VARCHAR,
+    endpoint_name VARCHAR UNIQUE,
+    endpoint_accesscode VARCHAR
+);
+
+CREATE TABLE
+IF NOT EXISTS p_audit_log (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    created_at INTEGER NOT NULL,
+    type VARCHAR NOT NULL,
+    data VARCHAR
+);
+
+CREATE INDEX idx_audit_log_created_at ON p_audit_log (created_at);
+
 
 INSERT INTO p_user(username, temp_password, sys_role)
 VALUES('admin', 'f6fdffe48c908deb0f4c3bd36c032e72', 'admin');

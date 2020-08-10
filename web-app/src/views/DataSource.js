@@ -3,10 +3,10 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { withTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 
-import Modal from '../components/Modal';
-import Toast from '../components/Toast';
-import SearchInput from '../components/SearchInput';
+import Modal from '../components/Modal/Modal';
+import SearchInput from '../components/SearchInput/SearchInput';
 
 class DataSource extends Component {
 
@@ -47,7 +47,7 @@ class DataSource extends Component {
   }
 
   fetchDataSources() {
-    axios.get('/ws/jdbcdatasource')
+    axios.get('/ws/jdbcdatasources')
       .then(res => {
         const jdbcDataSources = res.data;
         this.setState({ 
@@ -81,7 +81,7 @@ class DataSource extends Component {
     } = this.state;
 
     if (!name) {
-      Toast.showError('Enter a name.');
+      toast.error('Enter a name.');
       return;
     }
 
@@ -100,36 +100,36 @@ class DataSource extends Component {
       }
 
       // Update
-      axios.put('/ws/jdbcdatasource', ds)
+      axios.put('/ws/jdbcdatasources', ds)
         .then(res => {
           this.closeEditPanel();
           this.fetchDataSources();
         })
         .catch(error => {
-          Toast.showError('The name exists. Try another.');
+          toast.error('The name exists. Try another.');
         });
     } else {
       ds.password = password;
 
-      axios.post('/ws/jdbcdatasource', ds)
+      axios.post('/ws/jdbcdatasources', ds)
         .then(res => {
           this.closeEditPanel();
           this.fetchDataSources();
         })
         .catch(error => {
-          Toast.showError('The name exists. Try another.');
+          toast.error('The name exists. Try another.');
         });
     } 
   }
 
   ping = (id) => {
-    axios.get(`/ws/jdbcdatasource/ping/${id}`)
+    axios.get(`/ws/jdbcdatasources/ping/${id}`)
       .then(res => {
         const result = res.data;
         if (result === 'success') {
-          Toast.showSuccess('Ping Succeeded');
+          toast.success('Ping Succeeded');
         } else {
-          Toast.showError(result);
+          toast.error(result);
         }
       });
   }
@@ -167,7 +167,7 @@ class DataSource extends Component {
     const { 
       objectToDelete = {} 
     } = this.state;
-    axios.delete('/ws/jdbcdatasource/' + objectToDelete.id)
+    axios.delete('/ws/jdbcdatasources/' + objectToDelete.id)
       .then(res => {
         this.fetchDataSources();
         this.closeConfirmDeletionPanel();
@@ -211,11 +211,14 @@ class DataSource extends Component {
     const jdbcDataSourceItems = [];
     for (let i = 0; i < jdbcDataSources.length; i++) {
       const ds = jdbcDataSources[i];
-      const name = ds.name;
+      const { 
+        id,
+        name 
+      } = ds;
       if (!searchValue || (searchValue && name.includes(searchValue))) {
         jdbcDataSourceItems.push(
           (
-            <div key={i} className="card float-left">
+            <div key={id} className="card float-left">
               <div className="card-header ellipsis">
                 {name}
               </div>
@@ -223,13 +226,13 @@ class DataSource extends Component {
               <div className="card-footer row">
                 <div className="float-right">
                   <button className="icon-button card-icon-button" onClick={() => this.openEditPanel(ds)}>
-                    <FontAwesomeIcon icon="edit" size="lg" />
+                    <FontAwesomeIcon icon="edit"  />
                   </button>
                   <button className="icon-button card-icon-button" onClick={() => this.openConfirmDeletionPanel(ds)}>
-                    <FontAwesomeIcon icon="trash-alt" size="lg" />
+                    <FontAwesomeIcon icon="trash-alt"  />
                   </button>
                   <button className="icon-button card-icon-button" onClick={() => this.ping(ds.id)}>
-                    <FontAwesomeIcon icon="plug" size="lg" />
+                    <FontAwesomeIcon icon="plug"  />
                   </button>
                 </div>
               </div>
@@ -242,7 +245,13 @@ class DataSource extends Component {
     return (
       <div className="full-page-content">
         <div class="row">
-          <div className="float-left" style={{marginRight: '5px'}}>
+          <div className="float-left" style={{lineHeight: '33px', fontWeight: 700, marginRight: '15px'}}>
+            {t('Data Source')}
+          </div>
+          <button className="button float-left" style={{marginRight: '5px'}} onClick={() => this.openEditPanel(null)}>
+            <FontAwesomeIcon icon="plus" /> {t('New')}
+          </button>
+          <div className="float-left">
             <SearchInput 
               name={'searchValue'} 
               value={this.state.searchValue} 
@@ -250,11 +259,8 @@ class DataSource extends Component {
               inputWidth={200}
             />
           </div>
-          <button className="button float-left" onClick={() => this.openEditPanel(null)}>
-            <FontAwesomeIcon icon="plus" /> {t('New')}
-          </button>
         </div>
-        <div className="row mt-10">
+        <div className="row" style={{marginTop: '8px'}}>
           {jdbcDataSourceItems}
         </div>
 
@@ -330,7 +336,7 @@ class DataSource extends Component {
               onChange={this.handleInputChange} 
             />
             <button className="button mt-3 button-green" onClick={this.save}>
-              <FontAwesomeIcon icon="save" size="lg" fixedWidth /> {t('Save')}
+              <FontAwesomeIcon icon="save"  fixedWidth /> {t('Save')}
             </button>
           </div>
         </Modal>
